@@ -238,10 +238,7 @@ return {
 					},
 				},
 			},
-
-			ltex = {
-				language = "en-US",
-			},
+			ltex_plus = {},
 			-- clangd = {},
 			--
 			-- gopls = {},
