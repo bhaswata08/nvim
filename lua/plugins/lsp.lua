@@ -206,7 +206,6 @@ return {
 					exportPdf = "never",
 				},
 			},
-			rust_analyzer = {},
 			ruff = {},
 			lua_ls = {
 				-- cmd = { ... },
@@ -241,7 +240,8 @@ return {
 					},
 				},
 			},
-			bacon_ls = {},
+			rust_analyzer = {},
+			-- bacon_ls = {},
 			-- clangd = {},
 			--
 			-- gopls = {},

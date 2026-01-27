@@ -43,6 +43,13 @@ return {
 	},
 	{ "mfussenegger/nvim-dap" },
 	{
+		"cordx56/rustowl",
+		version = "*", -- Latest stable version
+		build = "cargo install rustowl",
+		lazy = false, -- This plugin is already lazy
+		opts = {},
+	},
+	{
 		"rmagatti/auto-session",
 		lazy = false,
 
