@@ -10,11 +10,6 @@ return {
 		-- Useful status updates for LSP.
 		{
 			"j-hui/fidget.nvim",
-			opts = {
-				progress = {
-					ignore = { "ltex" },
-				},
-			},
 		},
 
 		-- Allows extra capabilities provided by blink.cmp
@@ -238,7 +233,15 @@ return {
 					},
 				},
 			},
-			ltex_plus = {},
+			ltex_plus = {
+				checkFrequency = "save",
+				settings = {
+					ltex = {
+						language = "en-US",
+					},
+				},
+			},
+			bacon_ls = {},
 			-- clangd = {},
 			--
 			-- gopls = {},

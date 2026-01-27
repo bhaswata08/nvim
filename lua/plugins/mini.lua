@@ -37,14 +37,6 @@ return { -- Collection of various small independent plugins/modules
 		statusline.section_location = function()
 			return "%2l:%-2v"
 		end
-
-		opts = {
-			hipatterns = {
-				highlighters = {
-					cells = require("notebook-navigator").minihipatterns_spec,
-				},
-			},
-		}
 		-- ... and there is more!
 		--  Check out: https://github.com/echasnovski/mini.nvim
 	end,

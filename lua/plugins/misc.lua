@@ -1,10 +1,6 @@
 -- Standalone plugins with less than 10 lines of config go here
 return {
 	{
-		-- ty type checker
-		"aekasitt/tylsp.nvim",
-	},
-	{
 		-- Tmux & split window navigation
 		"christoomey/vim-tmux-navigator",
 	},
@@ -93,10 +89,6 @@ return {
 				desc = "Toggle Biscuits Visibility",
 			},
 		},
-	},
-	{
-		"sylvanfranklin/omni-preview.nvim",
-		opts = {},
 	},
 	{
 		"3rd/image.nvim",
