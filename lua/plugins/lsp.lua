@@ -307,6 +307,7 @@ return {
 			-- 		},
 			-- 	},
 			-- },
+			ty = {},
 			-- ty = {
 			--
 			-- 	init_options = {
@@ -356,15 +357,5 @@ return {
 				end,
 			},
 		})
-
-		-- vim.lsp.config("ty", {
-		-- 	filetypes = { "python" },
-		-- 	init_options = {
-		-- 		settings = {
-		-- 			-- ty language server settings go here
-		-- 		},
-		-- 	},
-		-- })
-		-- vim.lsp.enable("ty")
 	end,
 }
