@@ -74,28 +74,7 @@ return {
 		end,
 	},
 	{
-		"code-biscuits/nvim-biscuits",
-		opts = {
-			show_on_start = true,
-		},
-		keys = {
-			{
-				"<leader>bb",
-				function()
-					require("nvim-biscuits").BufferAttach()
-				end,
-				mode = "n",
-				desc = "Enable Biscuits",
-			},
-			{
-				"<leader>bt",
-				function()
-					require("nvim-biscuits").toggle_biscuits()
-				end,
-				mode = "n",
-				desc = "Toggle Biscuits Visibility",
-			},
-		},
+		"nvim-treesitter/nvim-treesitter-context",
 	},
 	{
 		"3rd/image.nvim",
