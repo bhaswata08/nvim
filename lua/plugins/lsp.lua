@@ -11,7 +11,6 @@ return {
 		{
 			"j-hui/fidget.nvim",
 		},
-
 		-- Allows extra capabilities provided by blink.cmp
 		"saghen/blink.cmp",
 	},
@@ -230,14 +229,6 @@ return {
 						format = {
 							enable = false,
 						},
-					},
-				},
-			},
-			ltex_plus = {
-				settings = {
-					ltex = {
-						language = "en-US",
-						checkFrequency = "save",
 					},
 				},
 			},
