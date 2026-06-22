@@ -41,7 +41,6 @@ return {
 			require("colorizer").setup()
 		end,
 	},
-	{ "mfussenegger/nvim-dap" },
 	{
 		"cordx56/rustowl",
 		version = "*", -- Latest stable version

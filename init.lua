@@ -25,6 +25,7 @@ require("lazy").setup({
 	require("plugins.bufterm"),
 	require("plugins.colortheme"),
 	require("plugins.comment"),
+	require("plugins.debugging"),
 	require("plugins.flash"),
 	require("plugins.fzf"),
 	require("plugins.gitgraph"),
@@ -48,3 +49,6 @@ require("lazy").setup({
 	require("plugins.typst"),
 	require("plugins.wilder"),
 })
+
+require("luasnippets.diagnostics")
+require("luasnippets.markdown")
