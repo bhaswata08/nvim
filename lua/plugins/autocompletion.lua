@@ -1,6 +1,13 @@
 return { -- Autocompletion
 	"saghen/blink.cmp",
 	event = "VimEnter",
+	-- NixOS: build the Rust fuzzy matcher from source instead of downloading a
+	-- prebuilt binary (whose dynamic linker doesn't exist on NixOS). We build in
+	-- an ephemeral `nix shell` so it uses a real Nix cargo/rustc (the system's
+	-- `cargo` is a rustup shim with no working toolchain) and links against Nix's
+	-- glibc, running natively. The compiled lib is copied into `lib/`, where
+	-- blink.lib.native resolves it from ($runtimepath/lib/). See `fuzzy` below.
+	build = "nix shell nixpkgs#cargo nixpkgs#rustc --command cargo build --release && mkdir -p lib && cp -f target/release/libblink_cmp_fuzzy.so lib/",
 	dependencies = {
 		-- Snippet Engine
 		{
@@ -29,7 +36,7 @@ return { -- Autocompletion
 			opts = {},
 		},
 		"folke/lazydev.nvim",
-        "saghen/blink.lib",
+		"saghen/blink.lib",
 	},
 	--- @module 'blink.cmp'
 	--- @type blink.cmp.Config
@@ -104,6 +111,11 @@ return { -- Autocompletion
 					border = "rounded",
 				},
 			},
+			accept = {
+				auto_brackets = {
+					enabled = true,
+				},
+			},
 		},
 		-- completion = {
 		-- 	-- By default, you may press `<c-space>` to show the documentation.
@@ -112,7 +124,7 @@ return { -- Autocompletion
 		-- },
 
 		sources = {
-			default = { "lsp", "path", "snippets", "lazydev" },
+			default = { "lsp", "path", "snippets", "lazydev", "buffer" },
 			providers = {
 				lazydev = { module = "lazydev.integrations.blink", score_offset = 100 },
 			},
@@ -127,7 +139,9 @@ return { -- Autocompletion
 		-- the rust implementation via `'prefer_rust_with_warning'`
 		--
 		-- See :h blink-cmp-config-fuzzy for more information
-		fuzzy = { implementation = "lua" },
+		-- Uses the Rust matcher built from source (see `build` above); falls back
+		-- to the Lua implementation if the compiled library isn't present.
+		fuzzy = { implementation = "prefer_rust" },
 
 		-- Shows a signature help window while you type arguments for a function
 		signature = { enabled = true },

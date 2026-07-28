@@ -38,7 +38,6 @@ require("lazy").setup({
 	require("plugins.markdown"),
 	require("plugins.mini"),
 	require("plugins.misc"),
-	require("plugins.neogit"),
 	require("plugins.noice"),
 	require("plugins.oil"),
 	require("plugins.remote-nvim"),

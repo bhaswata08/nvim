@@ -1,11 +1,23 @@
 return {
-	-- Main LSP Configuration
+	-- Main LSP Configuration.
+	-- nvim-lspconfig ships the per-server default configs (cmd/root markers/
+	-- filetypes) as `lsp/*.lua` runtime files; we consume them via the native
+	-- vim.lsp.config()/vim.lsp.enable() API (Neovim 0.11+) rather than the old
+	-- require("lspconfig")[name].setup() framework.
 	"neovim/nvim-lspconfig",
+	-- Lazy-load LSP only when a real file buffer is opened.
+	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
-		-- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-		{ "williamboman/mason.nvim", opts = {} },
-		"williamboman/mason-lspconfig.nvim",
-		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		-- NixOS note: no Mason. Its prebuilt FHS binaries can't run here, so LSP
+		-- servers are installed via Nix (modules/packages/languages.nix) and found
+		-- on PATH; they're wired up with the native vim.lsp API below.
+
+		-- Auto-updates imports/paths when files are renamed or moved (e.g. from oil).
+		{
+			"antosha417/nvim-lsp-file-operations",
+			dependencies = { "nvim-lua/plenary.nvim" },
+			config = true,
+		},
 
 		-- Useful status updates for LSP.
 		{
@@ -31,17 +43,19 @@ return {
 				-- or a suggestion from your LSP for this to activate.
 				map("gra", vim.lsp.buf.code_action, "[G]oto Code [A]ction", { "n", "x" })
 
+				local fzf = require("fzf-lua")
+
 				-- Find references for the word under your cursor.
-				map("grr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
+				map("grr", fzf.lsp_references, "[G]oto [R]eferences")
 
 				-- Jump to the implementation of the word under your cursor.
 				--  Useful when your language has ways of declaring types without an actual implementation.
-				map("gri", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
+				map("gri", fzf.lsp_implementations, "[G]oto [I]mplementation")
 
 				-- Jump to the definition of the word under your cursor.
 				--  This is where a variable was first declared, or where a function is defined, etc.
 				--  To jump back, press <C-t>.
-				map("grd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+				map("grd", fzf.lsp_definitions, "[G]oto [D]efinition")
 
 				-- WARN: This is not Goto Definition, this is Goto Declaration.
 				--  For example, in C this would take you to the header.
@@ -49,16 +63,16 @@ return {
 
 				-- Fuzzy find all the symbols in your current document.
 				--  Symbols are things like variables, functions, types, etc.
-				map("gO", require("telescope.builtin").lsp_document_symbols, "Open Document Symbols")
+				map("gO", fzf.lsp_document_symbols, "Open Document Symbols")
 
 				-- Fuzzy find all the symbols in your current workspace.
 				--  Similar to document symbols, except searches over your entire project.
-				map("gW", require("telescope.builtin").lsp_dynamic_workspace_symbols, "Open Workspace Symbols")
+				map("gW", fzf.lsp_live_workspace_symbols, "Open Workspace Symbols")
 
 				-- Jump to the type of the word under your cursor.
 				--  Useful when you're not sure what type a variable is and you want to see
 				--  the definition of its *type*, not where it was *defined*.
-				map("grt", require("telescope.builtin").lsp_type_definitions, "[G]oto [T]ype Definition")
+				map("grt", fzf.lsp_typedefs, "[G]oto [T]ype Definition")
 
 				-- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
 				---@param client vim.lsp.Client
@@ -186,7 +200,7 @@ return {
 					},
 				},
 			},
-			nixfmt = {},
+			nixd = {},
 			-- pyright = {
 			-- 	settings = {
 			-- 		python = {
@@ -232,7 +246,8 @@ return {
 					},
 				},
 			},
-			rust_analyzer = {},
+			-- rust_analyzer is configured by rustaceanvim (see rustacean.lua);
+			-- do NOT also set it up here or the client attaches twice.
 			-- bacon_ls = {},
 			-- clangd = {},
 			--
@@ -316,38 +331,18 @@ return {
 			-- },
 		}
 
-		-- Ensure the servers and tools above are installed
+		-- LSP servers come from Nix (see modules/packages/languages.nix) and are
+		-- available on PATH.
 		--
-		-- To check the current status of installed tools and/or manually install
-		-- other tools, you can run
-		--    :Mason
-		--
-		-- You can press `g?` for help in this menu.
-		--
-		-- `mason` had to be setup earlier: to configure its options see the
-		-- `dependencies` table for `nvim-lspconfig` above.
-		--
-		-- You can add other tools here that you want Mason to install
-		-- for you, so that they are available from within Neovim.
-		local ensure_installed = vim.tbl_keys(servers or {})
-		vim.list_extend(ensure_installed, {
-			"stylua", -- Used to format Lua code
-		})
-		require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+		-- Broadcast the blink.cmp capabilities to every server via the wildcard
+		-- config, then apply each server's overrides on top of the nvim-lspconfig
+		-- defaults and enable them (native vim.lsp API, Neovim 0.11+).
+		vim.lsp.config("*", { capabilities = capabilities })
 
-		require("mason-lspconfig").setup({
-			ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-			automatic_installation = false,
-			handlers = {
-				function(server_name)
-					local server = servers[server_name] or {}
-					-- This handles overriding only values explicitly passed
-					-- by the server configuration above. Useful when disabling
-					-- certain features of an LSP (for example, turning off formatting for ts_ls)
-					server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-					require("lspconfig")[server_name].setup(server)
-				end,
-			},
-		})
+		for server_name, server in pairs(servers) do
+			vim.lsp.config(server_name, server)
+		end
+
+		vim.lsp.enable(vim.tbl_keys(servers))
 	end,
 }
