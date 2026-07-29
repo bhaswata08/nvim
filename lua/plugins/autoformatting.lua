@@ -14,6 +14,7 @@ return {
 
 		local sources = {
 			diagnostics.checkmake,
+			diagnostics.markdownlint_cli2,
 			formatting.prettier.with({ filetypes = { "html", "json", "yaml", "markdown" } }),
 			formatting.stylua,
 			formatting.shfmt.with({ args = { "-i", "4" } }),
