@@ -1,0 +1,9 @@
+{
+  // Blog/prose-friendly markdownlint rules. Consumed by none-ls via
+  // `markdownlint-cli2 --config`. See autoformatting.lua.
+  "default": true,
+  "MD013": false, // line length — prose isn't hard-wrapped
+  "MD025": false, // multiple top-level headings — Jekyll title lives in frontmatter
+  "MD041": false, // first line in file should be a top-level heading — frontmatter is first
+  "MD033": false // inline HTML — common in blog posts
+}

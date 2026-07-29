@@ -14,7 +14,10 @@ return {
 
 		local sources = {
 			diagnostics.checkmake,
-			diagnostics.markdownlint_cli2,
+			diagnostics.markdownlint_cli2.with({
+				-- Use the in-repo config regardless of cwd, so rules are consistent on every machine.
+				extra_args = { "--config", vim.fn.stdpath("config") .. "/.markdownlint.jsonc" },
+			}),
 			formatting.prettier.with({ filetypes = { "html", "json", "yaml", "markdown" } }),
 			formatting.stylua,
 			formatting.shfmt.with({ args = { "-i", "4" } }),
