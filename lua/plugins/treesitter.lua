@@ -13,8 +13,8 @@ return { -- Highlight, edit, and navigate code
 
 		-- Parsers we want available on every machine. On `main` there is no
 		-- `ensure_installed`/`auto_install`; we install explicitly (async — first run
-		-- compiles them; the master-compiled parsers already on rtp cover the gap).
-		-- `latex` is intentionally omitted: it's provided prebuilt via Nix.
+		-- compiles them). `latex` (for render-markdown $ math) installs cleanly here too:
+		-- its generate step only failed on the archived master branch, not on `main`.
 		local want = {
 			"lua",
 			"python",
@@ -39,6 +39,7 @@ return { -- Highlight, edit, and navigate code
 			"cmake",
 			"markdown",
 			"markdown_inline",
+			"latex",
 			"bash",
 			"css",
 			"html",
