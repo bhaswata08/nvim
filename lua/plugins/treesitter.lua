@@ -1,20 +1,26 @@
 return { -- Highlight, edit, and navigate code
 	"nvim-treesitter/nvim-treesitter",
-	branch = "master", -- stable API: ensure_installed/auto_install/highlight actually apply
+	branch = "main", -- the rewrite: compatible with Neovim 0.11+; master is archived
+	lazy = false, -- load at startup so the FileType highlight autocmd is registered early
 	build = ":TSUpdate",
-	config = function(_, opts)
-		require("nvim-treesitter.configs").setup(opts)
-		-- master's custom TS predicates/directives assume the pre-0.11 `match` shape;
-		-- re-register them array-tolerantly so markdown injections don't crash.
-		require("core.ts-directive-compat")
-	end,
-	-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-	opts = {
-		ensure_installed = {
+	config = function()
+		local ts = require("nvim-treesitter")
+
+		-- Default install_dir is stdpath("data")/site (~/.local/share/nvim/site), which
+		-- setup() also prepends to runtimepath. That's the same dir where Nix drops the
+		-- prebuilt latex parser (configs/nvim.nix), so everything colocates on rtp.
+		ts.setup()
+
+		-- Parsers we want available on every machine. On `main` there is no
+		-- `ensure_installed`/`auto_install`; we install explicitly (async — first run
+		-- compiles them; the master-compiled parsers already on rtp cover the gap).
+		-- `latex` is intentionally omitted: it's provided prebuilt via Nix.
+		local want = {
 			"lua",
 			"python",
 			"javascript",
 			"typescript",
+			"tsx",
 			"vimdoc",
 			"vim",
 			"regex",
@@ -33,25 +39,27 @@ return { -- Highlight, edit, and navigate code
 			"cmake",
 			"markdown",
 			"markdown_inline",
-			-- latex parser is provided prebuilt via Nix (configs/nvim.nix); the
-			-- tree-sitter 0.26 CLI can't run master's generate step for it.
 			"bash",
-			"tsx",
 			"css",
 			"html",
 			"rust",
-		},
-		-- Autoinstall languages that are not installed
-		auto_install = true,
-		highlight = {
-			enable = true,
-		},
-		-- Folding is driven by foldexpr in init.lua; master's configs has no `fold` module.
-	},
-	-- There are additional nvim-treesitter modules that you can use to interact
-	-- with nvim-treesitter. You should go explore a few and see what interests you:
-	--
-	--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-	--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-	--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		}
+		local installed = ts.get_installed("parsers")
+		local missing = vim.tbl_filter(function(lang)
+			return not vim.tbl_contains(installed, lang)
+		end, want)
+		if #missing > 0 then
+			ts.install(missing)
+		end
+
+		-- `main` does not enable highlighting automatically. Start it for any buffer
+		-- whose filetype has a parser available (installed, or the Nix-provided latex).
+		vim.api.nvim_create_autocmd("FileType", {
+			group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
+			callback = function(args)
+				-- pcall so filetypes without a parser just fall back to no highlighting.
+				pcall(vim.treesitter.start, args.buf)
+			end,
+		})
+	end,
 }

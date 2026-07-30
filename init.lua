@@ -12,9 +12,9 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Treesitter folds
+-- Treesitter folds (Neovim builtin; nvim-treesitter `main` has no foldexpr of its own)
 vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt.foldlevelstart = 1 -- Start with top-level folds closed
 vim.opt.foldenable = false
 
