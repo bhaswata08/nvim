@@ -2,7 +2,12 @@ return { -- Highlight, edit, and navigate code
 	"nvim-treesitter/nvim-treesitter",
 	branch = "master", -- stable API: ensure_installed/auto_install/highlight actually apply
 	build = ":TSUpdate",
-	main = "nvim-treesitter.configs", -- Sets main module to use for opts
+	config = function(_, opts)
+		require("nvim-treesitter.configs").setup(opts)
+		-- master's custom TS predicates/directives assume the pre-0.11 `match` shape;
+		-- re-register them array-tolerantly so markdown injections don't crash.
+		require("core.ts-directive-compat")
+	end,
 	-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
 	opts = {
 		ensure_installed = {
