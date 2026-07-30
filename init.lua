@@ -32,6 +32,7 @@ require("lazy").setup({
 	require("plugins.gitsigns"),
 	require("plugins.gx"),
 	require("plugins.hardtime"),
+	require("plugins.img-clip"),
 	require("plugins.indent-blankline"),
 	require("plugins.lsp"),
 	require("plugins.lualine"),
