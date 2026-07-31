@@ -21,6 +21,7 @@ vim.opt.foldenable = false
 require("lazy").setup({
 	require("plugins.autocompletion"),
 	require("plugins.autoformatting"),
+	require("plugins.autolist"),
 	require("plugins.bufferline"),
 	require("plugins.bufterm"),
 	require("plugins.colortheme"),
@@ -44,6 +45,7 @@ require("lazy").setup({
 	require("plugins.remote-nvim"),
 	require("plugins.rustacean"),
 	require("plugins.snacks"),
+	require("plugins.table-mode"),
 	require("plugins.todo-comments"),
 	require("plugins.treesitter"),
 	require("plugins.typst"),
