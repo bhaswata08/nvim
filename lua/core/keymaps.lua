@@ -37,11 +37,8 @@ vim.keymap.set("n", "<leader>h", "<C-w>s", opts) -- split window horizontally
 vim.keymap.set("n", "<leader>s=", "<C-w>=", opts) -- make splits equal
 vim.keymap.set("n", "<leader>sq", ":close<CR>", opts) -- close split
 
--- Navigate between splits
-vim.keymap.set("n", "<C-h>", "<C-w>h", opts)
-vim.keymap.set("n", "<C-j>", "<C-w>j", opts)
-vim.keymap.set("n", "<C-k>", "<C-w>k", opts)
-vim.keymap.set("n", "<C-l>", "<C-w>l", opts)
+-- Navigate between splits: <C-h/j/k/l> is owned by herdr.nvim (plugins/misc.lua), which
+-- does the same wincmd and then crosses into the Herdr pane / tmux pane at the edge.
 
 -- Tab management
 vim.keymap.set("n", "<leader>to", ":tabnew<CR>", opts) -- open new tab

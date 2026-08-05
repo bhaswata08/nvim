@@ -5,6 +5,17 @@ return {
 		"christoomey/vim-tmux-navigator",
 	},
 	{
+		-- Herdr pane <-> nvim window navigation on <C-h/j/k/l>. Owns those maps itself
+		-- (and sets vim.g.tmux_navigator_no_mappings), delegating to vim-tmux-navigator
+		-- under tmux and to plain wincmd when neither multiplexer is running.
+		-- `build = false`: the helper binary comes from Nix (modules/packages/external.nix)
+		-- rather than the plugin's own `cargo build`, so `helper` names it on PATH.
+		"devxplay/herdr.nvim",
+		lazy = false,
+		build = false,
+		opts = { helper = "herdr-navigator" },
+	},
+	{
 		-- Detect tabstop and shiftwidth automatically
 		"tpope/vim-sleuth",
 	},
