@@ -52,13 +52,10 @@ return {
 			require("colorizer").setup()
 		end,
 	},
-	{
-		"cordx56/rustowl",
-		version = "*", -- Latest stable version
-		build = "cargo install rustowl",
-		lazy = false, -- This plugin is already lazy
-		opts = {},
-	},
+	-- rustowl removed: its `build = "cargo install rustowl"` never ran (no cargo
+	-- home on this machine) and rustowl is not in nixpkgs, so the plugin loaded
+	-- eagerly against a binary that was never there. Package the binary under
+	-- modules/packages/ the way latex2unicode is done before adding it back.
 	{
 		"rmagatti/auto-session",
 		lazy = false,

@@ -4,7 +4,11 @@ return {
 	config = function()
 		require("mini.ai").setup()
 		require("mini.surround").setup()
-		require("mini.icons").setup()
+		local icons = require("mini.icons")
+		icons.setup()
+		-- Stand in for nvim-web-devicons so plugins that require() it directly
+		-- (fzf-lua, bufferline) get mini.icons instead of a second icon set.
+		icons.mock_nvim_web_devicons()
 		require("mini.move").setup()
 	end,
 }

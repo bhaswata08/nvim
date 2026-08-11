@@ -1,6 +1,7 @@
 return {
 	"ibhagwan/fzf-lua",
-	dependencies = { "nvim-tree/nvim-web-devicons" },
+	-- Icons come from mini.icons via mock_nvim_web_devicons (see mini.lua).
+	dependencies = { "nvim-mini/mini.nvim" },
 	config = function()
 		local fzf = require("fzf-lua")
 

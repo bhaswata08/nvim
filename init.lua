@@ -34,7 +34,6 @@ require("lazy").setup({
 	require("plugins.gx"),
 	require("plugins.hardtime"),
 	require("plugins.img-clip"),
-	require("plugins.indent-blankline"),
 	require("plugins.lsp"),
 	require("plugins.lualine"),
 	require("plugins.markdown"),
@@ -49,7 +48,6 @@ require("lazy").setup({
 	require("plugins.todo-comments"),
 	require("plugins.treesitter"),
 	require("plugins.typst"),
-	require("plugins.wilder"),
 })
 
 require("luasnippets.diagnostics")
