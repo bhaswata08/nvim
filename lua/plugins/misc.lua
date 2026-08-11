@@ -46,8 +46,11 @@ return {
 		opts = { signs = false },
 	},
 	{
-		-- High-performance color highlighter
-		"norcalli/nvim-colorizer.lua",
+		-- Colour highlighter. This is the catgoose fork, not norcalli's original:
+		-- the original is unmaintained and still calls vim.tbl_flatten, which
+		-- Neovim removes in 0.13. Same require("colorizer").setup() API.
+		"catgoose/nvim-colorizer.lua",
+		event = "BufReadPre",
 		config = function()
 			require("colorizer").setup()
 		end,

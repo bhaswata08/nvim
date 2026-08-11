@@ -181,6 +181,9 @@ return {
 				},
 			},
 			nixd = {},
+			-- Markdown: links, headings, workspace symbols. The binary was already
+			-- installed by languages.nix but had never been enabled here.
+			marksman = {},
 			dockerls = {},
 			jsonls = {},
 			yamlls = {},
