@@ -1,13 +1,29 @@
+local platform = require("core.platform")
+
+-- Build blink.cmp's Rust fuzzy matcher from source. The compiled lib lands in
+-- `lib/`, where blink.lib.native resolves it from ($runtimepath/lib/). See
+-- `fuzzy` below.
+local function fuzzy_build()
+	if platform.is_nixos then
+		-- The prebuilt binary blink downloads by default has a dynamic linker that
+		-- does not exist on NixOS. Build in an ephemeral `nix shell` so it uses a
+		-- real Nix cargo/rustc (the system `cargo` is a rustup shim with no working
+		-- toolchain) and links against Nix's glibc.
+		return "nix shell nixpkgs#cargo nixpkgs#rustc --command cargo build --release"
+			.. " && mkdir -p lib && cp -f target/release/libblink_cmp_fuzzy.so lib/"
+	end
+	if platform.has("cargo") then
+		return "cargo build --release && mkdir -p lib && cp -f target/release/libblink_cmp_fuzzy.so lib/"
+	end
+	-- No toolchain on this machine: skip the build instead of failing it every
+	-- sync. `prefer_rust` then uses the Lua matcher, which needs nothing.
+	return false
+end
+
 return { -- Autocompletion
 	"saghen/blink.cmp",
 	event = "VimEnter",
-	-- NixOS: build the Rust fuzzy matcher from source instead of downloading a
-	-- prebuilt binary (whose dynamic linker doesn't exist on NixOS). We build in
-	-- an ephemeral `nix shell` so it uses a real Nix cargo/rustc (the system's
-	-- `cargo` is a rustup shim with no working toolchain) and links against Nix's
-	-- glibc, running natively. The compiled lib is copied into `lib/`, where
-	-- blink.lib.native resolves it from ($runtimepath/lib/). See `fuzzy` below.
-	build = "nix shell nixpkgs#cargo nixpkgs#rustc --command cargo build --release && mkdir -p lib && cp -f target/release/libblink_cmp_fuzzy.so lib/",
+	build = fuzzy_build(),
 	dependencies = {
 		-- Snippet Engine
 		{

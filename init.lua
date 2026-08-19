@@ -37,6 +37,7 @@ require("lazy").setup({
 	require("plugins.lsp"),
 	require("plugins.lualine"),
 	require("plugins.markdown"),
+	require("plugins.mason"),
 	require("plugins.mini"),
 	require("plugins.misc"),
 	require("plugins.noice"),

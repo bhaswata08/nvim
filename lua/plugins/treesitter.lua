@@ -50,7 +50,21 @@ return { -- Highlight, edit, and navigate code
 			return not vim.tbl_contains(installed, lang)
 		end, want)
 		if #missing > 0 then
-			ts.install(missing)
+			-- `main` compiles every parser with the tree-sitter CLI. Without it each
+			-- install fails with a bare ENOENT and you get an editor with no
+			-- highlighting and no obvious reason why, so say it once instead.
+			-- NixOS gets the CLI from languages.nix, everywhere else from Mason
+			-- (plugins/mason.lua), which may still be installing it on first run.
+			if require("core.platform").has("tree-sitter") then
+				ts.install(missing)
+			else
+				vim.notify(
+					"tree-sitter CLI not on PATH: no parsers can be compiled, so syntax "
+						.. "highlighting is off. Wait for Mason to finish installing "
+						.. "tree-sitter-cli, then restart Neovim.",
+					vim.log.levels.WARN
+				)
+			end
 		end
 
 		-- `main` does not enable highlighting automatically. Start it for any buffer

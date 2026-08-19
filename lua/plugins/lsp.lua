@@ -8,9 +8,12 @@ return {
 	-- Lazy-load LSP only when a real file buffer is opened.
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
-		-- NixOS note: no Mason. Its prebuilt FHS binaries can't run here, so LSP
-		-- servers are installed via Nix (modules/packages/languages.nix) and found
-		-- on PATH; they're wired up with the native vim.lsp API below.
+		-- Where the server binaries come from depends on the machine: Nix on
+		-- NixOS (modules/packages/languages.nix), Mason everywhere else
+		-- (plugins/mason.lua, which Mason cannot serve on NixOS because its
+		-- prebuilt FHS binaries have no valid dynamic linker there). Either way
+		-- they are on PATH by the time this runs, and the native vim.lsp API
+		-- below is what enables them.
 
 		-- Auto-updates imports/paths when files are renamed or moved (e.g. from oil).
 		{
@@ -221,8 +224,8 @@ return {
 			ty = {},
 		}
 
-		-- LSP servers come from Nix (see modules/packages/languages.nix) and are
-		-- available on PATH.
+		-- Keep this table in sync with `servers` in plugins/mason.lua, which is
+		-- what installs these on non-NixOS machines.
 		--
 		-- Broadcast the blink.cmp capabilities to every server via the wildcard
 		-- config, then apply each server's overrides on top of the nvim-lspconfig

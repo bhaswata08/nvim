@@ -8,9 +8,11 @@ return {
 		local formatting = null_ls.builtins.formatting -- to setup formatters
 		local diagnostics = null_ls.builtins.diagnostics -- to setup linters
 
-		-- NixOS: formatters/linters (prettier, stylua, shfmt, checkmake, ruff)
-		-- are installed via Nix and found on PATH. We do NOT use mason-null-ls to
-		-- install them, since Mason's FHS binaries can't run on NixOS.
+		-- The formatters and linters below (prettier, stylua, shfmt, checkmake,
+		-- markdownlint-cli2, ruff) have to be on PATH: Nix provides them on NixOS,
+		-- Mason everywhere else (plugins/mason.lua). mason-null-ls is not used —
+		-- plugins/mason.lua installs the tools directly, so there is one list to
+		-- keep in sync instead of two.
 
 		local sources = {
 			diagnostics.checkmake,
