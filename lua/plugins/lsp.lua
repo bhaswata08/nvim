@@ -237,5 +237,38 @@ return {
 		end
 
 		vim.lsp.enable(vim.tbl_keys(servers))
+
+		-- torchtyc: jaxtyping shape checking for PyTorch.
+		--
+		-- It is not in nvim-lspconfig or Mason, and it cannot go in the table
+		-- above, because which binary to run depends on the project: torchtyc
+		-- imports your code, so it has to be the copy installed in that
+		-- project's virtualenv when there is one. vim.lsp.start reuses a client
+		-- with the same name and root, so re-running this per buffer is cheap.
+		vim.api.nvim_create_autocmd("FileType", {
+			group = vim.api.nvim_create_augroup("torchtyc-lsp", { clear = true }),
+			pattern = "python",
+			callback = function(args)
+				local root = vim.fs.root(args.buf, { "pyproject.toml", "setup.py", ".git" })
+				if not root then
+					return
+				end
+
+				local exe = root .. "/.venv/bin/torchtyc"
+				if not vim.uv.fs_stat(exe) then
+					exe = vim.fn.exepath("torchtyc")
+					if exe == "" then
+						return
+					end
+				end
+
+				vim.lsp.start({
+					name = "torchtyc",
+					cmd = { exe, "lsp" },
+					root_dir = root,
+					capabilities = capabilities,
+				}, { bufnr = args.buf })
+			end,
+		})
 	end,
 }
