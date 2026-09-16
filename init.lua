@@ -48,6 +48,7 @@ require("lazy").setup({
 	require("plugins.table-mode"),
 	require("plugins.todo-comments"),
 	require("plugins.treesitter"),
+	require("plugins.tts"),
 	require("plugins.typst"),
 })
 
