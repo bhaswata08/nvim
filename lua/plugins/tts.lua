@@ -153,5 +153,103 @@ return {
         use_notify = false,             -- Use vim.notify for notifications
       },
     })
+
+    -- Treat a paragraph, not a line, as the unit that gets sentence-split.
+    --
+    -- Upstream breaks on every newline twice over: group_source_lines puts one
+    -- source line in each group when segmentation is 'sentence', and
+    -- split_segments then runs its own per-line gmatch. In hard-wrapped prose
+    -- that cuts mid-sentence and the voice stops for breath in the wrong place.
+    --
+    -- The before_play hook could reshape the text in one line, but that path
+    -- builds segments with no source range, and follow.show() bails without
+    -- one, so the cursor highlight would quietly stop working. Hence overriding
+    -- both functions here instead. Both fall through to the originals for the
+    -- other segmentation modes.
+    local utils = require('tts.utils')
+
+    local function speakable(s)
+      return s:match('[^%s%p]') ~= nil
+    end
+
+    local function sentence_mode()
+      return (require('tts.config').get().playback.segmentation or 'sentence') == 'sentence'
+    end
+
+    local group_source_lines = utils.group_source_lines
+    utils.group_source_lines = function(lines, start_line)
+      if not sentence_mode() then
+        return group_source_lines(lines, start_line)
+      end
+
+      local config = require('tts.config').get()
+      local skip_code = config.preprocessing and config.preprocessing.skip_code_blocks
+      local groups, group, first, last = {}, {}, nil, nil
+      local in_fence = false
+
+      local function flush()
+        if #group > 0 then
+          table.insert(groups, {
+            text = table.concat(group, '\n'),
+            first = first,
+            last = last,
+          })
+        end
+        group, first, last = {}, nil, nil
+      end
+
+      for i, line in ipairs(lines) do
+        local buf_line = start_line + i - 1
+        local skip = false
+
+        if skip_code then
+          if line:match('^%s*```') or line:match('^%s*~~~') then
+            in_fence = not in_fence
+            skip = true
+          elseif in_fence then
+            skip = true
+          end
+        end
+
+        if skip or not speakable(line) then
+          flush() -- a blank line or a code fence ends the paragraph
+        else
+          if not first then
+            first = buf_line
+          end
+          last = buf_line
+          table.insert(group, line)
+        end
+      end
+
+      flush()
+      return groups
+    end
+
+    local split_segments = utils.split_segments
+    utils.split_segments = function(text)
+      if not text or not sentence_mode() then
+        return split_segments(text)
+      end
+
+      -- Join the lines within each paragraph, keep one newline between
+      -- paragraphs. Upstream's per-line split then lands on paragraph bounds.
+      local paragraphs, paragraph = {}, {}
+      for line in (text .. '\n'):gmatch('([^\n]*)\n') do
+        if line:match('^%s*$') then
+          if #paragraph > 0 then
+            table.insert(paragraphs, table.concat(paragraph, ' '))
+            paragraph = {}
+          end
+        else
+          table.insert(paragraph, vim.trim(line))
+        end
+      end
+      if #paragraph > 0 then
+        table.insert(paragraphs, table.concat(paragraph, ' '))
+      end
+
+      return split_segments(table.concat(paragraphs, '\n'))
+    end
   end
 }
