@@ -1,4 +1,4 @@
-{
+return {
   'chriswritescode-dev/tts.nvim',
   config = function()
     require('tts').setup({
