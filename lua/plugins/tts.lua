@@ -176,6 +176,65 @@ return {
       return (require('tts.config').get().playback.segmentation or 'sentence') == 'sentence'
     end
 
+    -- Each group returned below is one sentence, with the buffer lines it
+    -- spans. play_lines copies a group's line range onto every segment cut
+    -- from it, so a paragraph-sized group made the highlight cover the whole
+    -- paragraph (or a whole list, since list items have no blank lines between
+    -- them) while only one sentence played. The sentence rule matches
+    -- upstream's split_segments: . ! or ? plus any closing quotes or brackets,
+    -- then whitespace.
+    local function sentences(para)
+      local parts, starts, pos = {}, {}, 1
+      for _, l in ipairs(para) do
+        starts[#starts + 1] = pos
+        parts[#parts + 1] = l.text
+        pos = pos + #l.text + 1
+      end
+      local joined = table.concat(parts, ' ')
+
+      local function line_at(offset)
+        local n = 1
+        while n < #starts and starts[n + 1] <= offset do
+          n = n + 1
+        end
+        return para[n].line
+      end
+
+      local out = {}
+      local function emit(s, e)
+        local text = joined:sub(s, e)
+        local lead = text:find('%S')
+        if not lead or not speakable(text) then
+          return
+        end
+        local tail = #text - text:reverse():find('%S') + 1
+        table.insert(out, {
+          text = vim.trim(text),
+          first = line_at(s + lead - 1),
+          last = line_at(s + tail - 1),
+        })
+      end
+
+      local from = 1
+      while true do
+        local s, e = joined:find('[%.!%?]["%)%]]*%s+', from)
+        if not s then
+          break
+        end
+        emit(from, e)
+        from = e + 1
+      end
+      emit(from, #joined)
+      return out
+    end
+
+    -- A list item, heading or quote line starts a new block even without a
+    -- blank line before it, so a bullet's sentences never run into the next.
+    local function block_start(line)
+      return line:match('^%s*[-*+]%s') or line:match('^%s*%d+[.)]%s')
+        or line:match('^%s*#+%s') or line:match('^%s*>')
+    end
+
     local group_source_lines = utils.group_source_lines
     utils.group_source_lines = function(lines, start_line)
       if not sentence_mode() then
@@ -184,18 +243,14 @@ return {
 
       local config = require('tts.config').get()
       local skip_code = config.preprocessing and config.preprocessing.skip_code_blocks
-      local groups, group, first, last = {}, {}, nil, nil
+      local groups, para = {}, {}
       local in_fence = false
 
       local function flush()
-        if #group > 0 then
-          table.insert(groups, {
-            text = table.concat(group, '\n'),
-            first = first,
-            last = last,
-          })
+        for _, g in ipairs(sentences(para)) do
+          table.insert(groups, g)
         end
-        group, first, last = {}, nil, nil
+        para = {}
       end
 
       for i, line in ipairs(lines) do
@@ -214,16 +269,70 @@ return {
         if skip or not speakable(line) then
           flush() -- a blank line or a code fence ends the paragraph
         else
-          if not first then
-            first = buf_line
+          if block_start(line) then
+            flush()
           end
-          last = buf_line
-          table.insert(group, line)
+          table.insert(para, { text = vim.trim(line), line = buf_line })
+          if line:match('^%s*#+%s') then
+            flush() -- a heading is a block of its own
+          end
         end
       end
 
       flush()
       return groups
+    end
+
+    -- Upstream follow.show() puts the cursor on the segment's first line and
+    -- runs zz in every window on each segment, so the view recentres on every
+    -- sentence even when it is already on screen. Here the cursor still
+    -- follows, but the view scrolls only when the sentence is out of sight,
+    -- and then puts it at the top so reading can run on for a full screen.
+    local follow = require('tts.follow')
+    local ns = vim.api.nvim_create_namespace('tts_segment')
+    local marked_buf
+
+    follow.clear = function()
+      if marked_buf and vim.api.nvim_buf_is_valid(marked_buf) then
+        vim.api.nvim_buf_clear_namespace(marked_buf, ns, 0, -1)
+      end
+      marked_buf = nil
+    end
+
+    follow.show = function(range)
+      if not require('tts.config').get().playback.follow then
+        return
+      end
+      follow.clear()
+      if not range or not range.bufnr or not vim.api.nvim_buf_is_valid(range.bufnr) then
+        return
+      end
+
+      local bufnr = range.bufnr
+      local count = vim.api.nvim_buf_line_count(bufnr)
+      local first = math.max(1, math.min(range.first or 1, count))
+      local last = math.max(first, math.min(range.last or first, count))
+      local last_text = vim.api.nvim_buf_get_lines(bufnr, last - 1, last, false)[1] or ''
+
+      vim.api.nvim_buf_set_extmark(bufnr, ns, first - 1, 0, {
+        end_row = last - 1,
+        end_col = #last_text,
+        hl_group = 'TTSSegment',
+        hl_eol = true,
+      })
+      marked_buf = bufnr
+
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_get_buf(win) == bufnr then
+          local visible = first >= vim.fn.line('w0', win) and last <= vim.fn.line('w$', win)
+          vim.api.nvim_win_set_cursor(win, { first, 0 })
+          if not visible then
+            vim.api.nvim_win_call(win, function()
+              vim.cmd('normal! zt')
+            end)
+          end
+        end
+      end
     end
 
     local split_segments = utils.split_segments
