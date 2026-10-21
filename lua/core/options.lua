@@ -1,6 +1,19 @@
 vim.wo.number = true -- Make line numbers default (default: false)
 vim.o.relativenumber = true -- Set relative numbered lines (default: false)
 vim.o.clipboard = "unnamedplus" -- Sync clipboard between OS and Neovim. (default: '')
+-- Over SSH, copy via OSC 52 but paste from the unnamed register: WezTerm does not
+-- answer OSC 52 read queries, so a clipboard read hangs on "Waiting for OSC 52 response".
+if vim.env.SSH_TTY then
+	local osc52 = require("vim.ui.clipboard.osc52")
+	local function paste()
+		return { vim.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+	end
+	vim.g.clipboard = {
+		name = "OSC 52 (copy only)",
+		copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+		paste = { ["+"] = paste, ["*"] = paste },
+	}
+end
 vim.o.wrap = false -- Display lines as one long line (default: true)
 vim.o.linebreak = true -- Companion to wrap, don't split words (default: false)
 vim.o.mouse = "a" -- Enable mouse mode (default: '')
