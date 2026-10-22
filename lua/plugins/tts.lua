@@ -1,5 +1,8 @@
 return {
   'chriswritescode-dev/tts.nvim',
+  -- The Kokoro server below only runs on the local desktop. `cond` rather than
+  -- `enabled` keeps the plugin in lazy-lock.json when synced on a server.
+  cond = not require('core.platform').is_remote,
   config = function()
     require('tts').setup({
       -- Backend selection: 'auto', 'macos', 'openai'

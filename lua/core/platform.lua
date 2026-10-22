@@ -16,6 +16,11 @@ local M = {}
 
 M.is_nixos = vim.uv.fs_stat("/etc/NIXOS") ~= nil
 
+-- Running over ssh. Plugins that act on the local desktop (open a browser, play
+-- audio from the local Kokoro server) would act on the server instead, so they
+-- are switched off here. sshd sets these; a tmux started under ssh keeps them.
+M.is_remote = vim.env.SSH_TTY ~= nil or vim.env.SSH_CONNECTION ~= nil
+
 --- True when `name` is an executable on PATH.
 --- @param name string
 --- @return boolean

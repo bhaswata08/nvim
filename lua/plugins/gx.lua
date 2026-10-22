@@ -1,5 +1,8 @@
 return {
 	"chrishrb/gx.nvim",
+	-- Would open the browser on the server. `cond` rather than `enabled` keeps the
+	-- plugin in lazy-lock.json when synced on a server.
+	cond = not require("core.platform").is_remote,
 	keys = { { "gx", "<cmd>Browse<cr>", mode = { "n", "x" } } },
 	cmd = { "Browse" },
 	init = function()
